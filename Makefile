@@ -25,6 +25,15 @@ setup_deploy:
 		read -p "Enter branch to use [$(deploy_repo_branch)]: " deploy_repo_branch; \
 		git clone "$${url:-$(deploy_repo_url)}" -b "$${deploy_repo_branch:-$(deploy_repo_branch)}" deploy
 
+deploy:
+	cd deploy; git pull; git checkout -f .;
+	$(MAKE) build
+	cd deploy; \
+		export GIT_DIR=./.git; \
+		git add .; \
+		git commit -m "Autocommit by docker-jekyll on `date`"; \
+		git push
+
 #=================================================================================
 # Utils
 #=================================================================================
@@ -35,11 +44,7 @@ shell:
 docker-build:
 	docker build -t dergachev/docker-jekyll docker/
 
-prepare:
-	mkdir -p source deploy
-	chmod g+s source deploy 
-
-new:
+setup_source:
 	$(MAKE) docker-run cmd="jekyll new source"
 	$(MAKE) docker-run cmd="chmod -R g+w source"
 
@@ -49,12 +54,8 @@ serve:
 build:
 	$(MAKE) docker-run cmd="jekyll build -s source -d deploy"
 
-deploy:
-	cd deploy; git pull; git checkout -f .;
-	$(MAKE) build
-	cd deploy; git add .; git commit -m "Autocommit by docker-jekyll on `date`"; git push
-
-docker-run: prepare
+docker-run:
+	mkdir -p source deploy; chmod g+s source deploy
 	docker run -t -i \
 	-v `pwd`/source:/srv/docker-jekyll/source/ \
 	-v `pwd`/deploy:/srv/docker-jekyll/deploy \
