@@ -23,15 +23,11 @@ RUN gem install jekyll
 # Prevents prompt for authenticating SSH host key on each 'rake deploy' (INSECURE)
 RUN mkdir -p /root/.ssh && echo "StrictHostKeyChecking no" >> /root/.ssh/config
 
-# Install script to ensures that newly created files are 775 by default
-ADD docker-umask-wrapper.sh /bin/docker-umask-wrapper.sh
-RUN chmod u+x /bin/docker-umask-wrapper.sh
-
 ADD . /srv/docker-jekyll
 WORKDIR /srv/docker-jekyll
 
 # Expose default Octopress port
 EXPOSE 4000
 
-# Run Octopress
+# Run bash
 CMD ["/bin/bash"]
